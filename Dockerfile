@@ -29,7 +29,7 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # 设置 Next.js 输出为 standalone
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # 构建应用
 RUN pnpm build
@@ -48,8 +48,7 @@ ENV PORT=3000
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-# 复制构建产物
-COPY --from=builder /app/public ./public
+# 复制构建产物（纯 API 项目，无 public 目录）
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
