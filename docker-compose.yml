@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fastgpt-pro-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongo:27017/fastgpt}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - TOKEN_KEY=${TOKEN_KEY:-change-this-token-key}
+      - DEFAULT_ROOT_PSW=${DEFAULT_ROOT_PSW:-change-this-password}
+    depends_on:
+      - mongo
+      - redis
+    restart: unless-stopped
+    networks:
+      - fastgpt-network
+
+  mongo:
+    image: mongo:6
+    container_name: fastgpt-mongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=myusername
+      - MONGO_INITDB_ROOT_PASSWORD=mypassword
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+    networks:
+      - fastgpt-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: fastgpt-redis
+    command: redis-server --requirepass mypassword
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - fastgpt-network
+
+volumes:
+  mongo_data:
+  redis_data:
+
+networks:
+  fastgpt-network:
+    driver: bridge
