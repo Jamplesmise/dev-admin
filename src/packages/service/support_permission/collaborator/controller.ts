@@ -11,6 +11,7 @@ import { MongoMemberGroupModel } from '../memberGroup/memberGroupSchema';
 import { MongoGroupMemberModel } from '../memberGroup/groupMemberSchema';
 import { MongoOrgModel } from '../org/orgSchema';
 import { MongoOrgMemberModel } from '../org/orgMemberSchema';
+import { MongoTeamMemberModel } from '../../support_user/team/teamMemberSchema';
 import { TeamPermission } from '../../../global/support/permission/user/controller';
 import { TeamMemberRoleEnum } from '../../../global/support_user_team/constant';
 
@@ -112,8 +113,11 @@ export const getModelCollaboratorList = async ({
     if (collab.orgId) orgIds.push(String(collab.orgId));
   });
 
-  // 批量查询所有相关数据
-  const [groups, orgs] = await Promise.all([
+  // 批量查询所有相关数据（包括成员信息）
+  const [members, groups, orgs] = await Promise.all([
+    tmbIds.length > 0
+      ? MongoTeamMemberModel.find({ _id: { $in: tmbIds } }, 'name avatar').lean()
+      : [],
     groupIds.length > 0
       ? MongoMemberGroupModel.find({ _id: { $in: groupIds } }, 'name avatar').lean()
       : [],
@@ -121,6 +125,7 @@ export const getModelCollaboratorList = async ({
   ]);
 
   // 构建查找 Map
+  const memberMap = new Map(members.map((m) => [String(m._id), m]));
   const groupMap = new Map(groups.map((g) => [String(g._id), g]));
   const orgMap = new Map(orgs.map((o) => [String(o._id), o]));
 
@@ -131,9 +136,12 @@ export const getModelCollaboratorList = async ({
     let avatar = '';
 
     if (collab.tmbId) {
-      name = `成员_${String(collab.tmbId).slice(-4)}`;
+      const tmbIdStr = String(collab.tmbId);
+      const member = memberMap.get(tmbIdStr);
+      name = member?.name || `成员_${tmbIdStr.slice(-4)}`;
+      avatar = member?.avatar || '';
       result.push({
-        tmbId: String(collab.tmbId),
+        tmbId: tmbIdStr,
         teamId,
         permission: { value: collab.permission },
         name,
@@ -213,8 +221,11 @@ export const getCollaboratorList = async ({
     if (collab.orgId) orgIds.push(String(collab.orgId));
   });
 
-  // 批量查询所有相关数据
-  const [groups, orgs] = await Promise.all([
+  // 批量查询所有相关数据（包括成员信息）
+  const [members, groups, orgs] = await Promise.all([
+    tmbIds.length > 0
+      ? MongoTeamMemberModel.find({ _id: { $in: tmbIds } }, 'name avatar').lean()
+      : [],
     groupIds.length > 0
       ? MongoMemberGroupModel.find({ _id: { $in: groupIds } }, 'name avatar').lean()
       : [],
@@ -222,6 +233,7 @@ export const getCollaboratorList = async ({
   ]);
 
   // 构建查找 Map
+  const memberMap = new Map(members.map((m) => [String(m._id), m]));
   const groupMap = new Map(groups.map((g) => [String(g._id), g]));
   const orgMap = new Map(orgs.map((o) => [String(o._id), o]));
 
@@ -233,7 +245,9 @@ export const getCollaboratorList = async ({
 
     if (collab.tmbId) {
       const tmbIdStr = String(collab.tmbId);
-      name = `成员_${tmbIdStr.slice(-4)}`;
+      const member = memberMap.get(tmbIdStr);
+      name = member?.name || `成员_${tmbIdStr.slice(-4)}`;
+      avatar = member?.avatar || '';
       result.push({
         tmbId: tmbIdStr,
         teamId,
