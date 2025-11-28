@@ -1,4 +1,5 @@
-export const CollaboratorCollectionName = 'collaborators';
+// 集合名称 - 与官方 FastGPT 保持一致
+export const CollaboratorCollectionName = 'resource_permissions';
 
 // 资源类型
 export enum ResourceTypeEnum {

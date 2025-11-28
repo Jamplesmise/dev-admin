@@ -1,13 +1,14 @@
 import type { ResourceTypeEnum, CollaboratorTypeEnum } from './constant';
 
-// 协作者 Schema 类型
+// 协作者 Schema 类型 (与官方 FastGPT resource_permissions 集合兼容)
 export type CollaboratorSchemaType = {
   _id: string;
   teamId: string;
 
   // 资源信息
-  resourceId: string;
+  resourceId?: string; // 可选：资源 ID (app/dataset 的 ObjectId)
   resourceType: `${ResourceTypeEnum}`;
+  resourceName?: string; // 可选：资源名称（用于模型等场景）
 
   // 协作者类型（三选一）
   tmbId?: string; // 单个成员
@@ -17,8 +18,9 @@ export type CollaboratorSchemaType = {
   // 权限值（位运算）
   permission: number;
 
-  createTime: Date;
-  updateTime: Date;
+  // 时间字段（Pro API 扩展，便于查询和审计）
+  createTime?: Date;
+  updateTime?: Date;
 };
 
 // 协作者列表项类型
