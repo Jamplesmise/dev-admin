@@ -53,9 +53,17 @@ export const CollaboratorSchema = new Schema(
       type: Number,
       required: true,
       default: PermissionPresets.readOnly
+    },
+
+    // 可选：资源名称（用于没有 resourceId 的资源，如模型名称）
+    // 与官方 FastGPT 保持一致
+    resourceName: {
+      type: String
     }
   },
   {
+    // 添加时间字段，便于后续查询和审计
+    // 官方 FastGPT 读取时会自动忽略这些字段
     timestamps: {
       createdAt: 'createTime',
       updatedAt: 'updateTime'
